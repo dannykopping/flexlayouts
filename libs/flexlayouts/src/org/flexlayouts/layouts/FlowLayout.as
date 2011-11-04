@@ -1,7 +1,8 @@
 package org.flexlayouts.layouts {
 	import mx.core.ILayoutElement;
-	
-	import spark.components.supportClasses.GroupBase;
+    import mx.core.IVisualElement;
+
+    import spark.components.supportClasses.GroupBase;
 	import spark.layouts.supportClasses.LayoutBase;
 
 	/**
@@ -89,6 +90,54 @@ package org.flexlayouts.layouts {
 
 			//set final content size (needed for scrolling)
 			layoutTarget.setContentSize(maxWidth + _padding, maxHeight + _padding);
+
+            measure();
 		}
+
+        override public function measure():void
+        {
+            var totalWidth:Number = 0;
+            var totalHeight:Number = 0;
+
+            // loop through the elements
+            var layoutTarget:GroupBase = target;
+            var count:int = layoutTarget.numElements;
+            for(var i:int = 0; i < count; i++)
+            {
+                // get the current element, we're going to work with the
+                // ILayoutElement interface
+                var element:ILayoutElement = useVirtualLayout ?
+                        layoutTarget.getVirtualElementAt(i) :
+                        layoutTarget.getElementAt(i);
+
+                // In virtualization scenarios, the element returned could
+                // still be null. Look at the typical element instead.
+                if(!element)
+                    element = typicalLayoutElement;
+
+                // Find the preferred sizes
+                var elementWidth:Number = element.getPreferredBoundsWidth();
+                var elementHeight:Number = element.getPreferredBoundsHeight();
+
+                totalWidth += elementWidth;
+                totalHeight = Math.max(totalHeight, IVisualElement(element).y + elementHeight);
+            }
+            if(count > 0)
+                totalWidth += (count - 1) * _horizontalGap;
+
+            layoutTarget.measuredWidth = totalWidth;
+            layoutTarget.measuredHeight = totalHeight;
+
+            // Since we really can't fit the content in space any
+            // smaller than this, set the measured minimum size
+            // to be the same as the measured size.
+            // If the container is clipping and scrolling, it will
+            // ignore these limits and will still be able to
+            // shrink below them.
+            layoutTarget.measuredMinWidth = totalWidth;
+            layoutTarget.measuredMinHeight = totalHeight;
+
+            layoutTarget.invalidateSize();
+        }
 	}
 }
