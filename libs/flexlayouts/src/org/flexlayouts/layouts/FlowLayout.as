@@ -52,6 +52,9 @@ package org.flexlayouts.layouts {
 			for (var i:int = 0; i < count; i++) {
 				var element:ILayoutElement = ( useVirtualLayout ? layoutTarget.getVirtualElementAt(i) : layoutTarget.getElementAt(i) );
 
+                if(!element.includeInLayout)
+                    continue;
+
 				//resize the element to its preferred size by passing in NaN
 				element.setLayoutBoundsSize(NaN, NaN);
 
